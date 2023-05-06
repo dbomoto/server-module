@@ -32,6 +32,7 @@ const io = require('socket.io')(server, {
 const jwt = require('jwt-then')
 const Message = mongoose.model('Message')
 const User = mongoose.model('User') 
+const Chatroom = mongoose.model("Chatroom");
 
 io.use(async (socket,next)=>{
     try {
@@ -73,6 +74,21 @@ io.on('connection',(socket) => {
                 name: user.name,
                 userID: socket.userID
             })
+
+            // place io.to here of updateMessage to all rooms
+            const chatrooms = await Chatroom.find({});
+            const roomArray = chatrooms.map((room)=>{
+                return room._id.toString()
+            }).filter((str)=>{
+                return str !== id ? true : false;
+            })
+
+            io.to(roomArray).emit('updateMessage',{
+                message,
+                name: user.name,
+                userID: socket.userID                    
+            })
+
 
             await newMessage.save();
         }
