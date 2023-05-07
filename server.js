@@ -26,7 +26,7 @@ const server = app.listen(4000, ()=>{
 const io = require('socket.io')(server, {
     cors: {
         origin: "http://localhost:3000",
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST", "DELETE"]
       }
   })
 const jwt = require('jwt-then')
@@ -63,6 +63,7 @@ io.on('connection',(socket) => {
     socket.on('chatroomMessage', async ({id,message})=>{
         if (message.trim().length > 0){
             const user = await User.findOne({_id:socket.userID})
+            console.log(user)
             const newMessage = new Message({
                 chatroom: id,
                 user: socket.userID,
@@ -72,7 +73,7 @@ io.on('connection',(socket) => {
             io.to(id).emit('newMessage',{
                 message,
                 name: user.name,
-                userID: socket.userID
+                userID: user._id.toString()
             })
 
             // place io.to here of updateMessage to all rooms
