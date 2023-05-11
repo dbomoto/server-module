@@ -36,7 +36,7 @@ exports.login = async (req, res) => {
         password: sha256(password + process.env.SALT)
     })
 
-    if (!user) throw "Email or passowrd did not match.";
+    if (!user) throw "Email or password did not match.";
     const token = await jwt.sign({ id: user.id }, process.env.SECRET);
 
     res.json({
@@ -49,8 +49,30 @@ exports.getInfo = async (req, res) => {
     const token = req.headers.authorization.split(" ")[1];
     const decoded = await jwt.verify(token, process.env.SECRET)
 
-    const user = await User.findOne({ _id: decoded.id }, { name: 1, email: 1 })
+    const user = await User.findOne({ _id: decoded.id }, { name: 1, email: 1, contacts: 1 }).populate({
+        path: 'contacts',
+        select: '_id name email'
+    })
     res.json(user)
+}
+
+exports.removeContact = async(req,res) => {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = await jwt.verify(token, process.env.SECRET)
+
+    const removeThis = await User.findOne({ _id: req.body.remove }, {_id:1, name:1, email:1})
+
+    User.findOneAndUpdate(
+        { _id: decoded.id },
+        { $pull: {contacts: removeThis._id} },
+        { new: true}
+    ).then(()=>{
+        res.json({
+            message: 'Contact successfully removed.'
+        })
+    }).catch((err)=>{
+        throw err.message
+    })
 }
 
 exports.delete = async (req, res) => {
@@ -64,5 +86,23 @@ exports.delete = async (req, res) => {
 
     res.status(200).json({
         message: 'Account successfully deleted'
+    })
+}
+
+exports.addContact = async (req, res) => {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = await jwt.verify(token, process.env.SECRET)
+
+    const addThis = await User.findOne({ _id: req.body.add }, {_id:1, name:1, email:1})
+
+    User.findOneAndUpdate(
+        { _id: decoded.id },
+        { $addToSet: {contacts: {_id:addThis._id, name:addThis.name, email:addThis.email}} },
+    ).then(()=>{
+        res.json({
+            message: 'Contact successfully added.'
+        })
+    }).catch((err)=>{
+        throw err.message
     })
 }
