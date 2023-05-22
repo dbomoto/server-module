@@ -1,13 +1,13 @@
 {
   "name": "server-module",
   "version": "1.0.0",
-  "description": "Simple chat app.",
+  "description": "The server module for my chat app.",
+  "author": "Daniel Benedict L. Omoto <dbomoto@gmail.com> (https://github.com/dbomoto)",  
   "main": "server.js",
   "scripts": {
     "start": "nodemon"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
